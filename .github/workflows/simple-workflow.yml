@@ -11,45 +11,55 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            # Checkout the current repository (example-vault)
             - name: Checkout the repository
               uses: actions/checkout@v4
 
-            - name: Use Node.js 23
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 23
-
+            # Clone the second repository (obsidious) into a subdirectory
             - name: Clone obsidious (shallow copy)
-              working-directory: ${{ github.workspace }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   git clone --depth=1 https://github.com/nicholaswagner/obsidious.git ${{ github.workspace }}/obsidious
-                  cd ${{ github.workspace }}/obsidious
-                  npm ci
 
-            - name: Run Obsidious Indexer (remote version)
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  npm exec remark-obsidious@latest --yes -- --out ${{ github.workspace }}/obsidious/src/assets/
+            # Install dependencies for obsidious
+            - name: Install dependencies for obsidious
+              working-directory: ${{ github.workspace }}/obsidious
+              run: npm ci
+
+            - name: Ignore Obsidious checkout
               working-directory: ${{ github.workspace }}
+              run: echo "obsidious" >> .gitignore
 
+            # Run the indexer in your current repository
+            - name: Run Obsidious Indexer
+              working-directory: ${{ github.workspace }}
+              run: npm exec remark-obsidious@latest --yes
+
+            # Copy the generated index to the obsidious assets folder
+            - name: Copy index to Obsidious assets
+              run: cp -f ${{ github.workspace }}/obsidious-index.json ${{ github.workspace }}/obsidious/src/assets/obsidious-index.json
+
+            # Build the obsidious app
             - name: Build Obsidious app
               env:
                   VITE_BASE_URL: /example-vault/
                   VITE_FILEPATH_PREFIX: ./
                   VITE_INITIAL_VAULT_FILE_LABEL_SLUG: readme
               working-directory: ${{ github.workspace }}/obsidious
-              run: npm run build && cp -r dist/* ${{ github.workspace }}/
+              run: npm run build
 
+            # Copy built files to the main repository
+            - name: Copy built site to workspace root
+              run: cp -r ${{ github.workspace }}/obsidious/dist/* ${{ github.workspace }}/
+
+            # Set up Git for GitHub Pages deployment
             - name: Set up Git for GitHub Pages deployment
-              working-directory: ${{ github.workspace }}
               run: |
                   git config --global user.name "GitHub Actions"
                   git config --global user.email "actions@github.com"
                   git checkout --orphan gh-pages  # Create a new orphan branch for GitHub Pages
-              #   git rm -rf .  # Remove everything from the previous branch
+                  git rm -rf .  # Remove everything from the previous branch
+
+            # Commit and push to GitHub Pages
             - name: Commit and push to GitHub Pages
               run: |
                   git add -A  # Add all the files from the dist/
