@@ -1,40 +1,58 @@
-name: Index Repository
-description: This will crawl the main branch file structure, using a .gitignore as a filter. It will then build up an index of the files and folders in the repository.
+name: Index and Build Site
+description: Index the repository, clone `nicholaswagner/obsidious`, and build the site.
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  build_repository_index:
-    runs-on: ubuntu-latest
+    build_repository_index:
+        runs-on: ubuntu-latest
 
-    # env:
-    #   IN_DIR: "./"
-    #   OUT_DIR: "./"
-    #   INDEX_NAME: "vault"
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
+            - name: Use Node.js 23
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 23
 
-      - name: Use Node.js 23
-        uses: actions/setup-node@v4
-        with:
-          node-version: 23
+            - name: Clone obsidious (shallow copy)
+              working-directory: ${{ github.workspace }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git clone --depth=1 https://github.com/nicholaswagner/obsidious.git ${{ github.workspace }}/obsidious
+                  cd ${{ github.workspace }}/obsidious
+                  npm ci
 
-      - name: Run Obsidious Indexer (remote version)
-        run: |
-          npm exec remark-obsidious@latest --yes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ${{ github.workspace }}
+            - name: Run Obsidious Indexer (remote version)
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  npm exec remark-obsidious@latest --yes 
+                  && cp ${{github.workspace}}/obsidious-index.json ${{ github.workspace }}/obsidious/src/assets/obsidious-index.json
+              working-directory: ${{ github.workspace }}
 
-      - name: Upload the index and log files
-        uses: actions/upload-artifact@v4
-        with:
-          name: obsidious-index
-          path: |
-            ${{ github.workspace }}/obsidious-index.json
-            ${{ github.workspace }}/obsidious-index.log
+            - name: Build Obsidious app
+              env:
+                  VITE_BASE_URL: /example-vault/
+                  VITE_FILEPATH_PREFIX: ./
+                  VITE_INITIAL_VAULT_FILE_LABEL_SLUG: readme
+              working-directory: ${{ github.workspace }}/obsidious
+              run: npm run build && cp -r dist/* ${{ github.workspace }}/
+
+            - name: Set up Git for GitHub Pages deployment
+              working-directory: ${{ github.workspace }}
+              run: |
+                  git config --global user.name "GitHub Actions"
+                  git config --global user.email "actions@github.com"
+                  git checkout --orphan gh-pages  # Create a new orphan branch for GitHub Pages
+              #   git rm -rf .  # Remove everything from the previous branch
+            - name: Commit and push to GitHub Pages
+              run: |
+                  git add -A  # Add all the files from the dist/
+                  git commit -m "Deploy site to GitHub Pages"
+                  git push --force --set-upstream origin gh-pages  # Force push to the gh-pages branch
