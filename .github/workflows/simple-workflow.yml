@@ -35,20 +35,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check if the indexer ran successfully
-        id: check_files
-        run: |
-          if [[ ! -f "$OUT_DIR/$INDEX_NAME.json" ]]; then
-            echo "Index file not found! Workflow failed."
-            exit 1
-          fi
-          if [[ -f "$OUT_DIR/$INDEX_NAME.log" ]]; then
-            echo "LOG_FILE_EXISTS=true" >> $GITHUB_ENV
-          fi
-
-      - name: Upload the log file if exists
-        if: env.LOG_FILE_EXISTS == 'true'
+      - name: Upload the index and log files
         uses: actions/upload-artifact@v3
         with:
-          name: obsidian-index-log
-          path: $OUT_DIR/$INDEX_NAME.log
+          name: obsidian-index-files
+          path: |
+            $OUT_DIR/$INDEX_NAME.json
+            $OUT_DIR/$INDEX_NAME.log
