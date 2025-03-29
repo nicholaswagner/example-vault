@@ -1,0 +1,54 @@
+name: Index Repository
+description: This will crawl the main branch file structure, using a .gitignore as a filter. It will then build up an index of the files and folders in the repository.
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_repository_index:
+    runs-on: ubuntu-latest
+
+    env:
+      # The indexer will begin crawling the repository from this directory
+      IN_DIR: "./"
+      # The indexer will create the repository index json file and log files in this directory
+      OUT_DIR: "./"
+      # Both the index and log files will be prefixed with this string
+      # The index file will be named <INDEX_NAME>.json
+      # The log files will be named <INDEX_NAME>.log
+      INDEX_NAME: "obsidian-index"
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 23
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+
+      - name: Run Obsidian Indexer (remote version)
+        run: |
+          npm exec remark-obsidious@latest --yes -- --in $IN_DIR --out $OUT_DIR --indexName $INDEX_NAME
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if the indexer ran successfully
+        id: check_files
+        run: |
+          if [[ ! -f "$OUT_DIR/$INDEX_NAME.json" ]]; then
+            echo "Index file not found! Workflow failed."
+            exit 1
+          fi
+          if [[ -f "$OUT_DIR/$INDEX_NAME.log" ]]; then
+            echo "LOG_FILE_EXISTS=true" >> $GITHUB_ENV
+          fi
+
+      - name: Upload the log file if exists
+        if: steps.check_files.outputs.LOG_FILE_EXISTS == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: obsidian-index-log
+          path: $OUT_DIR/$INDEX_NAME.log
