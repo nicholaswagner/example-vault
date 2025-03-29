@@ -18,9 +18,15 @@ jobs:
       # Both the index and log files will be prefixed with this string
       # The index file will be named <INDEX_NAME>.json
       # The log files will be named <INDEX_NAME>.log
-      INDEX_NAME: "obsidian-index"
+      INDEX_NAME: "vault"
 
     steps:
+      - name: Confirm env vars
+        run: |
+          echo "IN_DIR: $IN_DIR"
+          echo "OUT_DIR: $OUT_DIR"
+          echo "INDEX_NAME: $INDEX_NAME"
+          
       - name: Checkout the repository
         uses: actions/checkout@v4
 
@@ -29,7 +35,7 @@ jobs:
         with:
           node-version: 23
 
-      - name: Run Obsidian Indexer (remote version)
+      - name: Run Obsidious Indexer (remote version)
         run: |
           npm exec remark-obsidious@latest --yes -- --in $IN_DIR --out $OUT_DIR --indexName $INDEX_NAME
         env:
@@ -39,7 +45,7 @@ jobs:
       - name: Upload the index and log files
         uses: actions/upload-artifact@v4
         with:
-          name: obsidian-index-files
+          name: obsidious-index
           path: |
-            $OUT_DIR/$INDEX_NAME.json
-            $OUT_DIR/$INDEX_NAME.log
+            ${{ github.workspace }}/$OUT_DIR/$INDEX_NAME.json
+            ${{ github.workspace }}/$OUT_DIR/$INDEX_NAME.log
