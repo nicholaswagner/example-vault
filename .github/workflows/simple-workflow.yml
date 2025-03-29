@@ -32,7 +32,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  npm exec remark-obsidious@latest --yes -- --out ${{ github.workspace }}/obsidious/src/assets/obsidious-index.json
+                  npm exec remark-obsidious@latest --yes -- --out ${{ github.workspace }}/obsidious/src/assets/
               working-directory: ${{ github.workspace }}
 
             - name: Build Obsidious app
