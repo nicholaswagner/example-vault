@@ -47,7 +47,7 @@ jobs:
           fi
 
       - name: Upload the log file if exists
-        if: steps.check_files.outputs.LOG_FILE_EXISTS == 'true'
+        if: env.LOG_FILE_EXISTS == 'true'
         uses: actions/upload-artifact@v3
         with:
           name: obsidian-index-log
