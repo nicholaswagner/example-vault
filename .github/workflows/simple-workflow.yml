@@ -34,9 +34,10 @@ jobs:
           npm exec remark-obsidious@latest --yes -- --in $IN_DIR --out $OUT_DIR --indexName $INDEX_NAME
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}
 
       - name: Upload the index and log files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: obsidian-index-files
           path: |
