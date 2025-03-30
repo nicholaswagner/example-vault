@@ -1,0 +1,11 @@
+{"level":"info","message":[".DS_Store","hidden_folder","node_modules",".prettierrc"]}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault","fileCount":13,"ignoredCount":3}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/callouts","fileCount":6,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/embeds","fileCount":6,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/folder 1","fileCount":2,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/folder 1/folder 2","fileCount":2,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/folder 1/folder 2/folder 3","fileCount":1,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/images","fileCount":1,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/internal links","fileCount":4,"ignoredCount":0}}
+{"level":"info","message":{"directory":"/home/runner/work/example-vault/example-vault/markdown","fileCount":3,"ignoredCount":0}}
+{"level":"info","message":"Indexing complete.  Vault files have been saved to "}
