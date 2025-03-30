@@ -1,6 +1,7 @@
 name: Index and Build Site
 description: Index the repository, clone `nicholaswagner/obsidious`, and build the site.
-
+permissions:
+    contents: write
 on:
     push:
         branches:
@@ -11,9 +12,14 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            # Checkout the current repository (example-vault)
-            - name: Checkout the repository
+            # Checkout the current repository (example-vault) which has markdown files / images etc
+            - name: Checkout repository
               uses: actions/checkout@v4
+
+            # Run the indexer in your current repository
+            - name: Run Obsidious Indexer
+              working-directory: ${{ github.workspace }}
+              run: npm exec remark-obsidious@latest --yes
 
             # Clone the second repository (obsidious) into a subdirectory
             - name: Clone obsidious (shallow copy)
@@ -24,15 +30,6 @@ jobs:
             - name: Install dependencies for obsidious
               working-directory: ${{ github.workspace }}/obsidious
               run: npm ci
-
-            - name: Ignore Obsidious checkout
-              working-directory: ${{ github.workspace }}
-              run: echo "obsidious" >> .gitignore
-
-            # Run the indexer in your current repository
-            - name: Run Obsidious Indexer
-              working-directory: ${{ github.workspace }}
-              run: npm exec remark-obsidious@latest --yes
 
             # Copy the generated index to the obsidious assets folder
             - name: Copy index to Obsidious assets
@@ -50,6 +47,10 @@ jobs:
             # Copy built files to the main repository
             - name: Copy built site to workspace root
               run: cp -r ${{ github.workspace }}/obsidious/dist/* ${{ github.workspace }}/
+
+            # Remove the obsidious directory to clean up
+            - name: Delete the obsidious directory
+              run: rm -rf ${{ github.workspace }}/obsidious
 
             # Set up Git for GitHub Pages deployment
             - name: Set up Git for GitHub Pages deployment
